@@ -115,6 +115,11 @@ func (c *criService) RunPodSandbox(ctx context.Context, r *runtime.RunPodSandbox
 		// Pod network is not needed on linux with host network.
 		podNetwork = false
 	}
+	if goruntime.GOOS == "windows" {
+		if privileged, exist := config.Annotations["io.microsoft.container.privileged"]; exist && strings.EqualFold(privileged, "true") {
+			podNetwork = false
+		}
+	}
 	if podNetwork {
 		// If it is not in host network namespace then create a namespace and set the sandbox
 		// handle. NetNSPath in sandbox metadata and NetNS is non empty only for non host network
