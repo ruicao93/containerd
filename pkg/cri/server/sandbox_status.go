@@ -19,6 +19,7 @@ package server
 import (
 	"encoding/json"
 	goruntime "runtime"
+	"strings"
 
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/errdefs"
@@ -75,6 +76,12 @@ func (c *criService) getIPs(sandbox sandboxstore.Sandbox) (string, []string, err
 		// For sandboxes using the node network we are not
 		// responsible for reporting the IP.
 		return "", nil, nil
+	}
+
+	if goruntime.GOOS == "windows" {
+		if privileged, exist := config.Annotations["io.microsoft.container.privileged"]; exist && strings.EqualFold(privileged, "true") {
+			return "", nil, nil
+		}
 	}
 
 	if closed, err := sandbox.NetNS.Closed(); err != nil {
